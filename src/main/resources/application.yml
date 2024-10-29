@@ -1,0 +1,17 @@
+spring:
+  application:
+    name: classe-service-webflux
+
+  r2dbc:
+    url: r2dbc:postgresql://localhost:5432/classe_service_r2dbc
+    username: postgres
+    password: passer
+
+  sql:
+    init:
+      platform: postgres
+      schema-locations: classpath:sql/schema.sql
+      data-locations: classpath:sql/data.sql
+      #mode: always
+server:
+  port: 8090
