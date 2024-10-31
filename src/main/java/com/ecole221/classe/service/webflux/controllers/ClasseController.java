@@ -7,16 +7,20 @@ import com.ecole221.classe.service.webflux.exception.ClasseServiceException;
 import com.ecole221.classe.service.webflux.exception.ClasseServiceNotFoundException;
 import com.ecole221.classe.service.webflux.helper.ClasseHelper;
 import com.ecole221.classe.service.webflux.mapper.Mapper;
+import com.ecole221.classe.service.webflux.models.Classe;
 import com.ecole221.classe.service.webflux.services.IClasse;
 import jakarta.validation.Valid;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 @RestController
 @RequestMapping(value = "/api/classes")
 public class ClasseController {
+
 
     private final Mapper mapper;
     private final ClasseHelper classeHelper;
@@ -36,13 +40,8 @@ public class ClasseController {
     }
 
     @PostMapping
-    public Mono<ClasseCreateResponse> save(@Valid @RequestBody ClasseCreateRequest classeCreateRequest) {
-        return classeHelper.checkDataClasse(classeCreateRequest)
-                .then(classeService.save(mapper.classeCreateRequestToClasseEntity(classeCreateRequest)))
-                .map(mapper::classeEntityToClasseCreateResponse)
-                .onErrorMap(ClasseServiceException.class, e ->
-                        new ClasseServiceException(e.getMessage()))
-                .flatMap(response -> response);
+    public Mono<ClasseCreateResponse> save(@Valid @RequestBody ClasseCreateRequest classeCreateRequestMono) {
+       return classeHelper.save(classeCreateRequestMono);
     }
 
     @GetMapping("/{id}")
@@ -63,13 +62,8 @@ public class ClasseController {
                         .thenReturn(ResponseEntity.ok("Deleted!")));
     }
 
-    @PutMapping
-    public Mono<ClasseCreateResponse> update(@Valid @RequestBody ClasseCreateRequest classeCreateRequest) {
-        return classeService.findByClasse(classeCreateRequest.getLibelle())
-                .switchIfEmpty(Mono.error(new ClasseServiceNotFoundException(
-                        "La classe " + classeCreateRequest.getLibelle() + " n'existe pas!")))
-                .flatMap(existingClasse -> classeService.save(mapper.classeCreateRequestToClasseEntity(classeCreateRequest)))
-                .map(mapper::classeEntityToClasseCreateResponse)
-                .flatMap(response -> response);
+    @PutMapping("/{id}")
+    public Mono<ClasseCreateResponse> update(@Valid @RequestBody ClasseCreateRequest classeCreateRequest, @PathVariable long id) {
+        return classeHelper.update(classeCreateRequest, id);
     }
 }
